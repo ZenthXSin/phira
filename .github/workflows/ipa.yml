@@ -39,6 +39,10 @@ jobs:
       - name: Archive unsigned app
         run: |
           set -euo pipefail
+          # The FFmpeg archives downloaded by prpr-avc live outside Cargo's
+          # cache. Remove cached build-script outputs so they are downloaded
+          # again on a fresh GitHub runner.
+          rm -rf target/xcode prpr-avc/static-lib
           xcodebuild \
             -project phira.xcodeproj \
             -scheme phira \
