@@ -46,9 +46,9 @@ jobs:
           ffmpeg_dir="$PWD/prpr-avc/static-lib/aarch64-apple-ios"
           mkdir -p "$ffmpeg_dir"
           curl --fail --location --retry 3 \
-            "https://github.com/TeamFlos/prpr-avc-ffmpeg/releases/download/20260730_v0/aarch64-apple-ios.tar.gz" \
+            "https://github.com/TeamFlos/prpr-avc-ffmpeg/releases/download/20260408_v0/aarch64-apple-ios.tar.gz" \
             | tar -xzf - -C "$ffmpeg_dir"
-          printf '20260730_v0\n' > "$ffmpeg_dir/.version"
+          printf '20260408_v0\n' > "$ffmpeg_dir/.version"
           export PRPR_AVC_LIBS="$PWD/prpr-avc/static-lib"
           # v0.7.1 uses PathBuf in its iOS export branch but omits the import.
           sed -i '' 's/path::Path,/path::{Path, PathBuf},/' phira/src/page/library.rs
