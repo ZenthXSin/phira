@@ -50,6 +50,8 @@ jobs:
             | tar -xzf - -C "$ffmpeg_dir"
           printf '20260730_v0\n' > "$ffmpeg_dir/.version"
           export PRPR_AVC_LIBS="$PWD/prpr-avc/static-lib"
+          # v0.7.1 uses PathBuf in its iOS export branch but omits the import.
+          sed -i '' 's/path::Path,/path::{Path, PathBuf},/' phira/src/page/library.rs
           xcodebuild \
             -project phira.xcodeproj \
             -scheme phira \
