@@ -210,7 +210,7 @@ pub fn request_file(id: impl Into<String>) {
                 (**env).CallVoidMethod.unwrap()(env, ctx, method);
             }
         } else if #[cfg(target_os = "ios")] {
-            use objc2::{available, define_class, rc::Retained, runtime::ProtocolObject, MainThreadMarker, MainThreadOnly};
+            use objc2::{define_class, rc::Retained, runtime::ProtocolObject, MainThreadMarker, MainThreadOnly};
             use objc2_foundation::{NSArray, NSObject, NSObjectProtocol, NSString, NSURL};
             use objc2_ui_kit::{UIDocumentPickerDelegate, UIDocumentPickerViewController};
 
@@ -269,30 +269,21 @@ pub fn request_file(id: impl Into<String>) {
             let mtm = MainThreadMarker::new().unwrap();
 
             let picker = UIDocumentPickerViewController::alloc(mtm);
-            let picker = if available!(ios = 14.0.0) {
-                use objc2_uniform_type_identifiers::UTType;
+            // `UniformTypeIdentifiers.framework` was introduced in iOS 14 and
+            // must not be linked by an app that supports iOS 12. The legacy
+            // document picker API and public UTI strings are available on iOS
+            // 8+, and cover the same import flow on every supported system.
+            #[allow(deprecated)]
+            let picker = {
+                use objc2_ui_kit::UIDocumentPickerMode;
 
-                let ext = |e: &str| UTType::typeWithFilenameExtension(&NSString::from_str(e)).unwrap();
                 let types = NSArray::from_retained_slice(&[
-                    ext("zip"),
-                    ext("pez"),
-                    ext("jpg"),
-                    ext("png"),
-                    ext("jpeg"),
-                    ext("json"),
-                    ext("mp3"),
-                    ext("ogg"),
+                    NSString::from_str("public.archive"),
+                    NSString::from_str("public.image"),
+                    NSString::from_str("public.json"),
+                    NSString::from_str("public.audio"),
                 ]);
-                UIDocumentPickerViewController::initForOpeningContentTypes(picker, &types)
-            } else {
-                #[allow(deprecated)]
-                {
-                    use objc2_ui_kit::UIDocumentPickerMode;
-
-                    let ext = NSString::from_str;
-                    let types = NSArray::from_retained_slice(&[ext("public.image"), ext("public.archive")]);
-                    UIDocumentPickerViewController::initWithDocumentTypes_inMode(picker, &types, UIDocumentPickerMode::Import)
-                }
+                UIDocumentPickerViewController::initWithDocumentTypes_inMode(picker, &types, UIDocumentPickerMode::Import)
             };
             let dlg_obj = PickerDelegate::new(mtm);
             picker.setDelegate(Some(ProtocolObject::from_ref(&*dlg_obj)));

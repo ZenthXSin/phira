@@ -87,8 +87,7 @@ rfd = { workspace = true }
 [target.'cfg(target_os = "ios")'.dependencies]
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
-objc2-ui-kit = { workspace = true, features = ["objc2-uniform-type-identifiers"] }
-objc2-uniform-type-identifiers = { workspace = true }
+objc2-ui-kit = { workspace = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.22.4"
