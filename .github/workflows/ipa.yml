@@ -39,10 +39,6 @@ jobs:
       - name: Archive unsigned app
         run: |
           set -euo pipefail
-          # The FFmpeg archives downloaded by prpr-avc live outside Cargo's
-          # cache. Remove cached build-script outputs so they are downloaded
-          # again on a fresh GitHub runner.
-          rm -rf target/xcode prpr-avc/static-lib
           ffmpeg_dir="$PWD/prpr-avc/static-lib/aarch64-apple-ios"
           mkdir -p "$ffmpeg_dir"
           curl --fail --location --retry 3 \
@@ -52,6 +48,34 @@ jobs:
           export PRPR_AVC_LIBS="$PWD/prpr-avc/static-lib"
           # v0.7.1 uses PathBuf in its iOS export branch but omits the import.
           sed -i '' 's/path::Path,/path::{Path, PathBuf},/' phira/src/page/library.rs
+          mkdir -p phira.app
+          python3 - <<'PYPLIST'
+          import plistlib
+          with open("phira.app/Info.plist", "wb") as f:
+              plistlib.dump({
+                  "CFBundleDevelopmentRegion": "en",
+                  "CFBundleDisplayName": "Phira",
+                  "CFBundleExecutable": "phira-main",
+                  "CFBundleIdentifier": "org.flos.phira",
+                  "CFBundleInfoDictionaryVersion": "6.0",
+                  "CFBundleName": "Phira",
+                  "CFBundlePackageType": "APPL",
+                  "CFBundleShortVersionString": "0.7.1",
+                  "CFBundleVersion": "701",
+                  "LSRequiresIPhoneOS": True,
+                  "UILaunchStoryboardName": "LaunchScreen",
+                  "UIRequiredDeviceCapabilities": ["arm64"],
+                  "UISupportedInterfaceOrientations": [
+                      "UIInterfaceOrientationLandscapeLeft",
+                      "UIInterfaceOrientationLandscapeRight"
+                  ],
+                  "UIRequiresFullScreen": True,
+                  "UIFileSharingEnabled": True,
+                  "LSSupportsOpeningDocumentsInPlace": True,
+                  "UIViewControllerBasedStatusBarAppearance": False,
+                  "UIStatusBarHidden": True,
+              }, f)
+          PYPLIST
           xcodebuild \
             -project phira.xcodeproj \
             -scheme phira \
